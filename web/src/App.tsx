@@ -1,35 +1,82 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from "react";
+import { Chart as ChartJS, BarElement, CategoryScale, LinearScale } from "chart.js";
+import { Bar } from "react-chartjs-2";
+import "./App.css";
+
+ChartJS.register(BarElement, CategoryScale, LinearScale);
 
 function App() {
-  const [count, setCount] = useState(0)
+    const [weightDataset, setWeightDataset] = React.useState([]);
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    React.useEffect(() => {
+        const fetchData = async () => {
+            const data: Array<any> = await( await fetch("http://localhost:5170")).json();
+            const result: Array<Array<number>> = [];
+            for(let i = 0; i < data.length; i++) {
+                const currentWorkout = [];
+                for(const entry in data[i]["sets"]) {
+                    currentWorkout.push(data[0]["sets"][entry]["weight"]);
+                }
+
+                result.push(currentWorkout);
+            }
+
+            setWeightDataset(result);
+        };
+
+        fetchData();
+    }, []);
+
+    const barCharts: Array<Bar> = [];
+    weightDataset.forEach((workout) => {
+        barCharts.push(
+            <Bar
+                data={{
+                    labels: ["Set 1", "Set 2", "Set 3", "Set 4", "Set 5", "Set 6"],
+                    datasets: [{
+                        label: "Weight",
+                        data: workout, //[12, 19, 3, 5, 2, 3],
+                        borderWidth: 1,
+                    }]
+                }}
+
+                options={{
+                    borderColor: "#bb264b",
+                    backgroundColor: [
+                        "rgb(255, 99, 132)",
+                        "rgb(54, 162, 235)",
+                        "rgb(255, 205, 86)"
+                    ],
+
+                    scales: {
+                        yAxes:{
+                            grid: {
+                                color: "#abcdef",
+                            },
+                            ticks:{
+                                color: "#abcdef",
+                            }
+                        },
+                        xAxes: {
+                            grid: {
+                                color: "#abcdef",
+                            },
+                            ticks:{
+                                color: "#abcdef",
+                            }
+                        },
+                        
+                    }
+                }}
+            />
+        );
+    });
+
+    return (
+        <div>
+            {barCharts}
+        </div>
+    );
 }
 
-export default App
+export default App;
